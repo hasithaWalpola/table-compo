@@ -1,0 +1,332 @@
+<div class="tab-content">
+
+    <div class="" style="padding-top: 20px">
+      <div class="card col-md-12">
+        <!-- Filters -->
+        <div class="row " id="inputRow">
+          <div class="col-md-12 filter-btn d-flex align-content-center" style="margin-left: 12px;"
+            [style.padding.px]="!filterSearchAvailability ? '0' : ''" appShowHide>
+            <!-- Filter button -->
+            <div *ngIf="filterAvailability" class=" p-2">
+              <button type="button" class="btn-filter" data-toggle="collapse" data-target="#filterCollapseTwo"
+                aria-expanded="false" aria-controls="collapseExample" (click)=onShowFilter()>
+                <img src="../../../../../assets/icons/filter-icon.png" id="navitem" width="16px" height="16px" alt=""
+                  loading="lazy" style="margin: 0px 5px ;">
+                Filters
+              </button>
+            </div>
+            <!-- Search Input -->
+            <div *ngIf="filterSearchAvailability" class="mr-auto p-2 col-sm-6  has-search">
+              <div class="form-control-feedback ">
+                <img src="../../../../../assets/icons/search-icon.png">
+              </div>
+              <input class="form-control search-filter" type="text" placeholder="Search" (keyup)="onSearchItems($event)">
+            </div>
+          </div>
+          <!-- Filter Options -->
+          <div *ngIf="filterAvailability"  class="collapse" id="filterCollapseTwo">
+            <div class="">
+              <div class="tableFilterBox" style="overflow: hidden;
+            margin: 0 0 10px 16px;
+            width: 900px;">
+                <label class="filterLbl" for="menuName">Filters</label>
+                <div class="row filtersRow">
+                  <div class="col-md-12 filterComponent">
+  
+                    <diV class="row second-row-filter">
+                      <div class="scrolling-wrapper">
+                        <div class="card">
+                          <button
+                            [ngClass]="categoryActive === 0  ? 'categories-filter-all-button-active' : 'categories-filter-all-button-inactive'"
+                            (click)="onCategoryPressed(0)">
+                            All</button>
+                        </div>
+  
+                        <div class="card" *ngFor="let category of categories">
+                          <button
+                            [ngClass]="categoryActive === category.id  ? 'categories-filter-button-active' : 'categories-filter-button-inactive'"
+                            (click)="onCategoryPressed(category.id)">
+                            {{category.title}}</button>
+  
+                        </div>
+                      </div>
+                    </diV>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- table -->
+        <div class="row">
+          <div class="col-md-12 table-responsive" [ngClass]="!isFilterClicked ? 'filterNotClicked' : 'filterClicked'"
+            [style.height.vh]="!isFilterClicked ? filterNotClickHeight : filterClickHeight"
+            style="padding: 0; margin: 0; ">
+            <table class="table customerTable" style="border-spacing: 0px !important;">
+              <thead style="border-spacing: 0px !important;">
+                <tr>
+                  <!-- Table Heading -->
+                  <th scope="col" *ngFor="let field of tableConfig" [ngClass]="field.classType ">{{field.header}}
+  
+                    <div *ngIf="field.header == 'POS Actions'" style="display: inline;">
+                      <img src="../../../../../../assets/icons/help.png" id="navitem" width="16px" height="16px" alt=""
+                        loading="lazy" style="margin: 0px 5px ;" data-toggle="tooltip" title="You sync items with POS">
+                    </div>
+                    <div *ngIf="field.checkbox" class="custom-control custom-checkbox" id="checkbox" appTableAction
+                      [policies]="policies">
+                      <input type="checkbox" class="custom-control-input itemCheck" [checked]="isAllSelected"
+                        id="allCheck" (click)="selectAll()">
+                      <label class="custom-control-label lblCheckbox" id="labelCheckbox" for="allCheck"></label>
+                    </div>
+                    <div *ngIf="field.sort" (click)="onItemSort()">
+                      <div *ngIf="tableData.length!=0 && isDataLoaded" style="display: flex;
+                          position: absolute;
+                          top: 0;
+                          right: 68px;
+                          flex-direction: column;">
+                        <span style="padding-left: 10px;"> <img src="../../../../../assets/icons/sortup.png" width="10px"
+                            alt="" loading="lazy">
+  
+                        </span>
+                        <span *ngIf="!sortName_dsc || !sortName_asc" style="padding-left: 10px;">
+                          <img src="../../../../../assets/icons/sortdown.png" width="10px" alt="" loading="lazy">
+  
+                        </span>
+                      </div>
+                      <span *ngIf="sortName_asc" style="display: flex;
+                        position: absolute;
+                        top: 9px;
+                        right: 68px;
+                        flex-direction: column;"> <img src="../../../../../assets/icons/sortupactive.png" width="10px"
+                          alt="" loading="lazy">
+  
+                      </span>
+                      <span *ngIf="!sortName_asc && sortName_dsc" style="display: flex;
+                        position: absolute;
+                        bottom: 9px;
+                        right: 68px;
+                        flex-direction: column;"><img src="../../../../../assets/icons/sortdownactive.png" width="10px"
+                          alt="" loading="lazy"></span>
+                    </div>
+                    <div *ngIf="loggedUserRole == 4 && field.type === 'User' " appTableAction [policies]="policies">
+                      Actions
+                    </div>
+                    <div *ngIf="field.type === 'MenuItems' " appTableAction [policies]="policies">
+                      Actions
+                    </div>
+                    <div *ngIf=" field.type == 'SnoozePolciy'" appTableAction [policies]="policies"
+                      [ngClass]="field.classType">
+                      #
+                    </div>
+                    <div *ngIf=" field.type === 'POSPolicy'" appTableAction [policies]="posSyncPolicy"
+                      [ngClass]="field.classType">
+                      POS Actions
+                    </div>
+                    <div *ngIf=" field.type === 'Policy'" appTableAction [policies]="policies"
+                      [ngClass]="field.classType">
+                      Actions
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Loader -->
+                <tr *ngIf="!isDataLoaded">
+                  <td colspan="12">
+                    <ngx-skeleton-loader class="skelton-tiles" count="4" [theme]="{ 
+                          'border-radius': '0px',
+                          height: '50px',
+                          width:'25%'
+                        }">
+                    </ngx-skeleton-loader>
+                  </td>
+                </tr>
+                <ng-container *ngIf="isDataLoaded && tableData.length !=0; else elseBlockUser">
+                  <tr *ngFor="let data of tableData let idx = index">
+  
+                    <td scope="row" *ngFor="let key of tableInfo" [ngClass]='key.classType'>
+  
+                      <ng-container *ngIf="key.type == 'String'">
+                        {{data[key.header]}}
+                      </ng-container>
+                      <!-- checkbox -->
+                      <ng-container *ngIf="key.type == 'Checkbox'">
+                        <div class="custom-control custom-checkbox" id="checkbox" appTableAction [policies]="policies">
+  
+                          <input type="checkbox" class="custom-control-input itemCheck"
+                            [checked]="(selectedMenuItems.indexOf(data[key.header])) != -1" id="{{data[key.header]}}"
+                            (change)="onSelectItem(data, $event)">
+                          <label class="custom-control-label lblCheckbox" id="labelCheckbox"
+                            for="{{data[key.header]}}"></label>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Span'" style="display: flex;">
+                        {{data[key.header]}}
+                        <span class="txtActive" *ngIf="data.id == this.master_outlet_id">Master Outlet</span>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Image'">
+                        <img src="{{data[key.header]}}" id="navitem" width="36px" alt="" loading="lazy"
+                          routerLink="/profile">
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Boolean'">
+                        {{key.check(data[key.header])}}
+  
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'MatchFound'">
+                        <div [ngClass]="data[key.header] ? 'statusLableFound' : 'statusLableNotFound'">
+                          {{key.check(data[key.header])}}
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'TwoHeaders'">
+                        {{key.check(data[key.header], data[key.headerTwo])}}
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Array'">
+                        {{key.check(data[key.header])}}
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Status'">
+                        <div [ngClass]="data[key.header] == 'Active' ? 'statusLableActive' : 'statusLableInActive' ">
+                          {{data[key.header]}}
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.header == 'pos_enable'">
+                        <div class="actions-set" appTableAction [policies]="posSyncPolicy">
+                          <a type="button" class="editBtn" style="margin-right: 20px; cursor: pointer;"
+                            (click)="onPosActionsClick(data)">
+                            <img [src]="'../../../../../../assets/icons/sync.png'" width="18px" height="18px" alt=""
+                              loading="lazy">
+  
+                          </a>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.header == 'action'">
+                        <div class="actions-set" appTableAction [policies]="policies">
+                          <a class=" btnAction" *ngFor="let action of tableAction">
+                            <img src={{action.image}} class="btnAction" (click)="onClickAction(action.type, data)"
+                              width="16px" height="18px" alt="" loading="lazy">
+                          </a>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.header == 'location_action'">
+                        <div class="actions-set">
+                          <a class=" btnAction" *ngFor="let action of tableAction">
+                            <div *ngIf="action.type == 'View'" [ngClass]="!access ? 'locationViewBtn' : null">
+                              <img src={{action.image}} class="btnAction" (click)="onClickAction(action.type, data)"
+                                width="16px" height="18px" alt="" loading="lazy">
+                            </div>
+                            <div *ngIf="action.policy != 'Visible'" appTableAction [policies]="policies">
+                              <img src={{action.image}} class="btnAction" (click)="onClickAction(action.type, data)"
+                                width="16px" height="18px" alt="" loading="lazy">
+                            </div>
+  
+                          </a>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.header == 'buttons'">
+                        <div *ngIf="loggedUserRole == 4" appTableAction [policies]="policies">
+                          <a *ngFor="let button of data[key.header]" (click)="onOpen(button.text , data.id)"
+                            id="action-btn" class="btn btn-{{button.class}}">{{button.text}}</a>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Switch'">
+                        <div class="switch">
+                          <ui-switch size="small" switchColor="white" color="#00c10b" [(ngModel)]="data[key.header]"
+                            [disabled]="!toggleAccess" (changeEvent)="onChangeAccept(key.header, data, data[key.header])"
+                            defaultBgColor="white" uncheckedLabel="Off" checkedLabel="On" checkedTextColor="white"
+                            defaultBoColor="#cccccc">
+                          </ui-switch>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Modifier'">
+  
+                        <div *ngFor="let item of data[key.header]">
+                          {{item.name}} x <strong>{{item.qty}}</strong>
+                          <div class="modDiv" *ngFor="let modifier of item.modifiers">
+                            <span class="modifierItemStyle color-gray">{{modifier.title}}</span>
+                            <span class="modifierItemStyle"
+                              *ngFor="let selItem of modifier.selected_item">{{selItem.title}}
+                              {{selItem.quantity==1?'':' x '+selItem.quantity}}</span>
+                            <span class="modifierItemStyle color-red"
+                              *ngFor="let remItem of modifier.removed_item">{{remItem.title}} x {{remItem.quantity==1?'':'
+                              x
+                              '+remItem.quantity}}</span>
+                          </div>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Platforms'">
+                        <div class="row logoRow">
+                          <div style="margin: 0px 10px;" *ngFor="let platform of data[key.header]">
+                            <img src='{{platform.logo}}' title="{{platform.name}}" width="30px" alt="" loading="lazy">
+                          </div>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'MenuPlatforms'">
+                        <div class="row logoRow" *ngIf="data[key.header].length > 0">
+                          <div style="margin: 0px 10px;" *ngFor="let dp of data[key.headerTwo]">
+                            <img src='{{dp.logo}}' title="{{dp.name}}" width="30px" alt="" loading="lazy">
+                          </div>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'SnoozePlatforms'">
+                        <div class="row logoRow" *ngIf="data[key.header].length > 0">
+                          <div style="margin: 0px 10px;" *ngFor="let dp of data[key.headerTwo]">
+                            <img src='{{dp.platform.logo}}' title="{{dp.platform.name}}" width="30px" alt=""
+                              loading="lazy">
+                          </div>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="key.type == 'Variants'">
+                        <div *ngFor="let item of data[key.header]">
+                          {{item}}
+                        </div>
+                      </ng-container>
+                    </td>
+                  </tr>
+                </ng-container>
+                <!-- No tableData -->
+                <ng-template #elseBlockUser>
+                  <tr *ngIf="isDataLoaded" style="line-height: 60px;">
+                    <td style="text-align: center;" colspan="10">{{noItemsAvailable}}</td>
+                  </tr>
+                </ng-template>
+              </tbody>
+            </table>
+  
+          </div>
+          <!-- Pagination -->
+          <div class="paginationFooter col-md-12" *ngIf="pages && pages.length > 1">
+              <div class="pagination-left"></div>
+              <div class="pagination-text">
+                Rows per page: 10
+              </div>
+              <div class="pagination-dropdown pagination-text btn-group">
+                <a class="" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  {{currentPage}} of {{pages.length}}
+                </a>
+              </div>
+
+              <div *ngIf="pages" class="pagination-right">
+                <nav *ngIf="pages.length > 1" aria-label="Page navigation example">
+              
+                  <ul class="pagination justify-content-end">
+                    <li class="page-item" [class.disabled]="currentPage === 1 ? true : false"  aria-disabled="currentPage === 1 ? true : false" style="padding-right: 10px;">
+                      <a class="page-link cursor"   (click)="getPages(currentPage-1)">
+                        <img src="../../../../../assets/icons/arrow-left.png">
+                      </a>
+                    </li>
+                    <li *ngFor="let page of visiblePages " [ngClass]="page == currentPage ? 'page-item active' : 'page-item' ">
+                      <a class="page-link cursor" (click)="getPages(page)">{{page}}</a>
+                    </li>
+                    <li class="page-item" [class.disabled]="currentPage === pages.length ? true : false" aria-disabled="currentPage === pages.length ? true : false" style="padding-left: 10px;">
+                      <a class="page-link cursor" (click)="getPages(currentPage+1)">
+                        <img src="../../../../../assets/icons/arrow-right.png">
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

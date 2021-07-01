@@ -15,9 +15,16 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "wa-table": [
+        "dist/wa-table/wa-table",
+        "dist/wa-table"
+      ]
+    }
   },
   "angularCompilerOptions": {
-    "enableI18nLegacyMessageIdFormat": false
+    "enableI18nLegacyMessageIdFormat": false,
+    "enableIvy": false
   }
 }
